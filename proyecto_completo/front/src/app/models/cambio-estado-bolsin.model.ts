@@ -1,4 +1,4 @@
-#cambio de estado de bolsín según la respuesta del backend
+"Cambio de estado de bolsín según la respuesta del backend"
 export interface CambioEstadoBolsin {
   id: number;
   estado: {
