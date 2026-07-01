@@ -63,7 +63,7 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def nuevaBusquedaBolsin(request):
-    
+    # Patrón GRASP aplicado: Alta Cohesión
     cm_nombre = buscarCMUsuarioLog(request.user)
     
     bolsines_enviados = buscarBolsinesEnviados(cm_nombre)
@@ -149,10 +149,12 @@ def llamarCUNotificarUbicacionDelBolsin(email, numero, lat, lng, fecha):
 def buscarBolsinesEnviados(cm_nombre):
     return [
             b for b in Bolsin.objects.all() 
+            # Patrón GRASP aplicado: Experto
             if b.sosEnviado() and b.esTuCMOrigen(cm_nombre)
         ]
 
 def buscarCMUsuarioLog(usuario_autenticado):
     sesion_activa = Sesion.objects.filter(usuario__user=usuario_autenticado).latest('id') 
     usuario = sesion_activa.usuario 
+    # Patrón GRASP aplicado: Experto
     return usuario.obtenerEmpleado().getCM().getNombre()
