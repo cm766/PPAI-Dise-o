@@ -1,3 +1,4 @@
+//PATRÓN GRASP APLICADO: alta cohesión
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -16,8 +17,6 @@ export class BolsinService {
     });
   } 
 
-  // En bolsin.service.ts
-  // En bolsin.service.ts
   notificarGerentes(data: any): Observable<InfoNotificacion> {
     return this.http.post<InfoNotificacion>(`${environment.apiUrl}/buscarEmailGCM/`, data, {
       headers: this.auth.getAuthHeaders()
