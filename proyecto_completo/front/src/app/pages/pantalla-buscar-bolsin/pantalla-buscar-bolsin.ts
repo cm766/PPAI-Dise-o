@@ -76,7 +76,7 @@ export class PantallaBuscarBolsin implements OnInit {
 				if (this.bolsines.length === 0) {
 					this.paso.set('vacio');
 				} else {
-					this.iniciarLocalizacion();
+					this.procesarCoordenadas();
 				}
 			},
 			error: () => {
@@ -103,7 +103,7 @@ export class PantallaBuscarBolsin implements OnInit {
 	}
 
 	// Prepara las ubicaciones de cada bolsín y pasa a mostrar el mapa.
-	iniciarLocalizacion(): void {
+	procesarCoordenadas(): void {
 		this.paso.set('localizando');
 
 		this.ubicaciones.clear();
