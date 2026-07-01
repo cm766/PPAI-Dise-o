@@ -1,3 +1,5 @@
+# PATRÓN GRASP APLICADO GENERAL: Experto en Información
+
 from time import timezone
 
 from django.db import models
@@ -18,7 +20,7 @@ class Usuario(models.Model):
 
     def __str__(self):
         return self.user.username
-    
+    # GRASP: Experto en Información
     def obtenerEmpleado(self):  
         return self.empleado  # Retorna el empleado asociado al usuario
 
@@ -107,7 +109,7 @@ class Empleado(models.Model):
 
     def getEmail(self):
         return self.email  # Retorna el email
-
+# GRASP: Polimorfismo / Bajo Acoplamiento
     def sosGerenteCM(self):
         return self.rol.esGerente()  # Retorna True si el rol es "Gerente"
     
@@ -132,7 +134,7 @@ class CambioEstadoBolsin(models.Model):
 
     def sosActual(self):
         return self.fechaHoraFin is None  # Retorna True si no hay fechaFin (es actual), 
-
+# GRASP: Bajo Acoplamiento
     def sosEnviado(self):
         return self.estado.esEnviado()  # Retorna True si el nombre del estado es 'Enviado'
 
@@ -171,7 +173,7 @@ class Bolsin(models.Model):
             self.delete()  # Se elimina el registro del bolsín de la base de datos
         else:
             raise ValueError("El bolsín ya fue enviado y no se puede dar de baja.")  # En caso de que se tenga que devolver otra cosa se cambia aqui, pero por ahora se devuelve un error
-
+# GRASP: Creador (Creator)
     def cerrar(self, numeroPrecinto):
         if self.numeroPrecinto is None:  # Si el bolsín no tiene número de precinto, significa que no ha sido cerrado
             self.numeroPrecinto = numeroPrecinto  # Se asigna el número de precinto al bolsín
@@ -183,7 +185,7 @@ class Bolsin(models.Model):
             self.save()  # Se guarda el cambio en la base de datos
         else:
             raise ValueError("El bolsín ya fue cerrado y no se puede cerrar nuevamente.")  # En caso de que se tenga que devolver otra cosa se cambia aqui, pero por ahora se devuelve un error
-            
+   # GRASP: Creador         
     def abrirBolsin(self):
         if self.cambioEstado.estado.nombre == "Cerrado":  # Si el bolsín está cerrado, se puede abrir
             self.cambioEstado.fechaHoraFin = timezone.now()  # Se marca la fecha y hora de apertura del cambio de estado actual
