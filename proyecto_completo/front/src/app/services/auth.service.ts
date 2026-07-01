@@ -1,4 +1,4 @@
-// auth.service.ts
+//PATRÓN GRASP APLICADO: bajo acoplamiento
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
