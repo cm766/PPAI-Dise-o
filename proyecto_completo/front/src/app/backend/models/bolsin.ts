@@ -24,19 +24,20 @@ export class Bolsin {
   ) {
     this.cambiosEstado = cambiosEstado ?? [];
   }
-
+/**Verdadero si cambio de estado actual es "Enviado" */
   sosEnviado(): boolean {
     return this.cambiosEstado.some((c) => c.sosEnviado());
   }
-
+/** Verdadero si la CM origen coincide con la indicada */
   esTuCMOrigen(cm: ComisionMedica): boolean {
     return this.cmOrigen.codigo === cm.codigo;
   }
-
+/** Nombre de la CM destino */
   getNumeroBolsin(): number {
     return this.numeroBolsin;
   }
 
+/** Retorna al historial de cambios de estado */
   getCambiosEstado(): CambioEstadoBolsin[] {
     return this.cambiosEstado;
   }
