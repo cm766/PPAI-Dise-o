@@ -1,3 +1,4 @@
+#PATRÓN GRASP APLICADO: Bajo acoplamiento
 from ..interfaz.GPSTracker import ServicioBolsinesTracker
 import json
 from datetime import datetime
