@@ -75,7 +75,7 @@ export class PantallaBuscarBolsin implements OnInit {
 				this.bolsines = res.bolsines_enviados || [];
 
 				this.mostrarCMUsuarioLog();
-				this.buscarBolsines();
+				this.destinos = [...new Set(this.bolsines.map(b => b.destino))];
 
 				if (this.bolsines.length === 0) {
 					this.paso.set('vacio');
@@ -99,12 +99,6 @@ export class PantallaBuscarBolsin implements OnInit {
 	mostrarCMUsuarioLog(): void {
 		// Ya no dependemos de un gestor de backend; usamos la propiedad asignada en la respuesta
 		this.cmOrigen = this.cmOrigen || '';
-	}
-
-	// Obtiene del gestor los bolsines en estado "Enviado" y prepara la lista de destinos para el filtro.
-	buscarBolsines(): void {
-		// La lista ya viene filtrada desde el Backend (visto en tu API previa), generamos los destinos únicos.
-		this.destinos = [...new Set(this.bolsines.map(b => b.destino))];
 	}
 
 	// Prepara las ubicaciones de cada bolsín y pasa a mostrar el mapa.
