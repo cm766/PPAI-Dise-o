@@ -1,3 +1,5 @@
+// Patrón GRASP aplicado: Alta Cohesión
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
