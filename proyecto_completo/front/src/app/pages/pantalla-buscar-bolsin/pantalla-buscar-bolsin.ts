@@ -4,12 +4,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { GestorBuscarBolsin } from '../../backend/gestor/gestor-buscar-bolsin';
 import { InfoNotificacion } from '../../models/notificacion.model';
-import { Usuario } from '../../backend/models/usuario';
-import { Bolsin } from '../../backend/models/bolsin';
-import { GpsLocation } from '../../backend/models/gps-tracker';
+import { Usuario } from '../../models/usuario.model';
+import { Bolsin } from '../../models/bolsin.model';
 import { ServidorMapaLeaflet } from '../../services/servidor-google-map';
+import { BolsinService } from '../../services/bolsin.service';
+import { GpsLocation } from '../../models/gps-location.model';
 
 type Paso =
 	| 'cargando'
@@ -31,8 +31,7 @@ type Paso =
 	styleUrl: './pantalla-buscar-bolsin.css',
 })
 export class PantallaBuscarBolsin implements OnInit {
-	private router = inject(Router);
-	private gestor = inject(GestorBuscarBolsin);
+	private bolsinService = inject(BolsinService);
 
 	// Atributos (Vista estática)
 	mapaBolsines: ServidorMapaLeaflet | null = null;
@@ -68,11 +67,14 @@ export class PantallaBuscarBolsin implements OnInit {
 	opcConsultarUbiBolsin(): void {
 		this.habilitarVentana();
 
-		this.gestor.nuevaBusquedaBolsin().subscribe({
-			next: (usuario) => {
-				this.usuarioLogueado = usuario;
-				this.mostrarCMUsuarioLog();
+		this.bolsinService.consultarUbicaciones().subscribe({
+			next: (res: any) => {
+				// Mapeamos de acuerdo a la estructura limpia que devuelve tu API en Django
+				this.usuarioLogueado = res.user || null;
+				this.cmOrigen = res.cm || '';
+				this.bolsines = res.bolsines_enviados || [];
 
+				this.mostrarCMUsuarioLog();
 				this.buscarBolsines();
 
 				if (this.bolsines.length === 0) {
@@ -95,12 +97,13 @@ export class PantallaBuscarBolsin implements OnInit {
 
 	// Muestra el nombre de la Comisión Médica del usuario logueado.
 	mostrarCMUsuarioLog(): void {
-		this.cmOrigen = this.gestor.cmOrigenBolsin?.getNombre() || '';
+		// Ya no dependemos de un gestor de backend; usamos la propiedad asignada en la respuesta
+		this.cmOrigen = this.cmOrigen || '';
 	}
 
 	// Obtiene del gestor los bolsines en estado "Enviado" y prepara la lista de destinos para el filtro.
 	buscarBolsines(): void {
-		this.bolsines = this.gestor.buscarBolsinesEnviados();
+		// La lista ya viene filtrada desde el Backend (visto en tu API previa), generamos los destinos únicos.
 		this.destinos = [...new Set(this.bolsines.map(b => b.destino))];
 	}
 
@@ -116,7 +119,7 @@ export class PantallaBuscarBolsin implements OnInit {
 					numeroBolsin: b.numeroBolsin,
 					latitud: b.latitud,
 					longitud: b.longitud,
-					fechaHoraUltimoReporte: b.ultimaActualizacion ?? new Date(),
+					fechaHoraUltimoReporte: b.ultimaActualizacion ? new Date(b.ultimaActualizacion) : new Date(),
 				});
 			} else {
 				this.ubicaciones.set(b.numeroBolsin, {
@@ -202,7 +205,7 @@ export class PantallaBuscarBolsin implements OnInit {
 					popupHtml,
 					icono,
 				);
-				marker.numeroBolsin = b.numeroBolsin;
+				(marker as any).numeroBolsin = b.numeroBolsin;
 			});
 
 			sm.ajustarVista();
@@ -225,9 +228,6 @@ export class PantallaBuscarBolsin implements OnInit {
 	tomarSeleccionBolsin(num: number): void {
 		this.bolsinSeleccionado =
 			this.bolsines.find((b) => b.numeroBolsin === num) || null;
-		if (this.bolsinSeleccionado) {
-			this.gestor.tomarSeleccionBolsin(this.bolsinSeleccionado);
-		}
 		this.procesarSeleccion();
 	}
 
@@ -253,7 +253,6 @@ export class PantallaBuscarBolsin implements OnInit {
 	// Procesa la respuesta del usuario sobre el envío del correo: si confirma, envía la notificación.
 	tomarConfirmacionEnvioCorreo(conf: boolean): void {
 		this.confirmacionEnvioCorreo = conf;
-		this.gestor.tomarConfEnvioCorreo(conf);
 
 		if (!conf) {
 			this.paso.set('detalleBolsin');
@@ -263,7 +262,12 @@ export class PantallaBuscarBolsin implements OnInit {
 		if (this.bolsinSeleccionado) {
 			this.paso.set('enviando');
 
-			this.gestor.llamarCUNotificarUbicacionDeBolsin().subscribe({
+			this.bolsinService.notificarGerentes({
+				numero: this.bolsinSeleccionado.numeroBolsin,
+				lat: this.bolsinSeleccionado.latitud,
+				lng: this.bolsinSeleccionado.longitud,
+				fecha: this.bolsinSeleccionado.ultimaActualizacion
+			}).subscribe({
 				next: (res: InfoNotificacion) => {
 					this.infoNotificacion = res;
 					this.mostrarMensajeExito();
