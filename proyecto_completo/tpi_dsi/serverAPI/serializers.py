@@ -1,3 +1,4 @@
+#PATRÓN GRASP APLICADO (general): Alta cohesión
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Usuario, Bolsin
@@ -9,19 +10,17 @@ class UserNestedSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "password": {"write_only": True}
         }
-#GRASP: Creador
+
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
     
 class UsuarioSerializer(serializers.ModelSerializer):
-    #GRASP: Bajo acoplamiento
     user = UserNestedSerializer()
     class Meta:
         model = Usuario
         fields = ['user','empleado']
 
 class BolsinSerializer(serializers.ModelSerializer):
-    #GRASP: Experto en Información
     destino = serializers.StringRelatedField()
     origen = serializers.StringRelatedField()
 
