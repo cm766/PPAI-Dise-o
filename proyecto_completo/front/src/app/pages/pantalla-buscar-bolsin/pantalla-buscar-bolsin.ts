@@ -54,6 +54,7 @@ export class PantallaBuscarBolsin implements OnInit {
 	errorMessage = '';
 
 	private servidorMapa: ServidorMapaLeaflet | null = null;
+	private renderMapaVersion = 0;
 
 	// Métodos públicos (Diagrama de clases)
 
@@ -135,6 +136,7 @@ export class PantallaBuscarBolsin implements OnInit {
 	// Renderiza el mapa Leaflet con los marcadores de los bolsines filtrados.
 	mostrarBolsinLocation(): void {
 		this.paso.set('mapa');
+		const versionRender = ++this.renderMapaVersion;
 
 		this.filtrados = this.bolsines.filter((b) => {
 			const matchP =
@@ -150,36 +152,33 @@ export class PantallaBuscarBolsin implements OnInit {
 		this.cantidadLocalizados = this.filtrados.filter((b) =>
 			this.ubicaciones.has(b.numeroBolsin),
 		).length;
+		const bolsinesConUbicacionFiltrados = this.filtrados.filter((b) =>
+			this.ubicaciones.has(b.numeroBolsin),
+		);
 
 		setTimeout(() => {
+			if (versionRender !== this.renderMapaVersion) return;
+
 			const el = document.getElementById('mapa-bolsines');
 			if (!el) return;
 
-			if (!this.servidorMapa) {
+			if (!this.servidorMapa || !document.getElementById('mapa-bolsines')?.querySelector('.leaflet-container')) {
 				this.servidorMapa = new ServidorMapaLeaflet(
 					'mapa-bolsines',
 					[-31.4201, -64.1888],
 					6,
 				);
 				this.servidorMapa.getMapa();
-			} else {
-				this.servidorMapa.limpiarMarcadores();
 			}
 
 			this.mapaBolsines = this.servidorMapa;
 			const sm = this.servidorMapa!;
+			sm.limpiarMarcadores();
 
-			const colores = [
-				'#6366f1',
-				'#10b981',
-				'#f59e0b',
-				'#ef4444',
-				'#8b5cf6',
-				'#ec4899',
-			];
+			const colores = ['#1F4E79'];
 			let i = 0;
 
-			this.filtrados.forEach((b) => {
+			bolsinesConUbicacionFiltrados.forEach((b) => {
 				const loc = this.ubicaciones.get(b.numeroBolsin);
 				if (!loc) return;
 
