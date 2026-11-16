@@ -46,7 +46,7 @@ class GestorBuscarBolsin:
                 # La fábrica devuelve el Adapter que corresponde al modelo de GPS del bolsín
                 servicio_tracker = crear_servicio_bolsines_tracker(bolsin.getModeloTracker())
                 # Llamada polimórfica: el gestor siempre usa la misma operación del Target
-                self.ubicaciones[numero] = servicio_tracker.obtener_ubicacion(numero)
+                self.ubicaciones[numero] = servicio_tracker.obtener_ubicacion(bolsin)
             except UbicacionNoDisponibleError:
                 # A3: el GPS Tracker no pudo informar la ubicación del bolsín
                 self.bolsines_sin_ubicacion.append(numero)

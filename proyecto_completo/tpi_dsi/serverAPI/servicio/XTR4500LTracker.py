@@ -1,42 +1,27 @@
 #PATRÓN GRASP APLICADO: Bajo acoplamiento
-from typing import Any, Dict
+import json
 from datetime import datetime
 
+from .coordenadas_simuladas import COORDENADAS_SIMULADAS
 
-# PATRÓN ADAPTER: Adaptee XTR4500L, con formato y operación propios del fabricante.
+
+# PATRÓN ADAPTER: Adaptee XTR-4500L, con la operación y el formato propios del fabricante.
+# CU 36, Observación 1: getBolsinLocation() recibe una API Key, el número de bolsín (entero)
+# y el código de la CM origen (String). Devuelve un JSON en formato cadena de caracteres
+# con el número de bolsín, la latitud, la longitud y la fecha y hora de la última actualización.
 class XTR4500LTracker:
-    _coordenadas = {
-        1: {"lat": -31.4201, "lng": -64.1888},
-        2: {"lat": -32.9468, "lng": -60.6393},
-        3: {"lat": -31.4135, "lng": -63.2497},
-        4: {"lat": -31.5375, "lng": -68.5234},
-        5: {"lat": -32.4833, "lng": -58.2278},
-        6: {"lat": -31.2497, "lng": -61.4917},
-        65: {"lat": -34.6037, "lng": -58.3816},
-    }
 
-    def __init__(self, api_key: str = ""):
-        self.api_key = api_key
-
-    def consultar_posicion(self, numero_bolsin: int) -> Dict[str, Any]:
-        pos = self._coordenadas.get(numero_bolsin)
-        if pos is None:
+    def getBolsinLocation(self, apiKey: str, nroBolsin: int, codigoCMOrigen: str) -> str:
+        posicion = COORDENADAS_SIMULADAS.get(nroBolsin)
+        if posicion is None:
             raise TimeoutError(
-                f"GPS Tracker XTR-4500L agotó el tiempo de espera para el bolsín #{numero_bolsin}"
+                f"GPS Tracker XTR-4500L agotó el tiempo de espera para el bolsín #{nroBolsin}"
             )
 
-        return {
-            "latitude_deg": pos["lat"],
-            "longitude_deg": pos["lng"],
-            "recorded_at": datetime.now().isoformat(),
-        }
-
-    def obtener_ubicacion(self, numero_bolsin: int) -> Dict[str, Any]:
-        # Compatibilidad temporal con views.py hasta que Bloque 1 migre al Target.
-        posicion = self.consultar_posicion(numero_bolsin)
-        return {
-            "numero_bolsin": numero_bolsin,
-            "latitud": float(posicion["latitude_deg"]),
-            "longitud": float(posicion["longitude_deg"]),
-            "ultima_actualizacion": posicion["recorded_at"],
-        }
+        latitud, longitud = posicion
+        return json.dumps([{
+            "bolsin": nroBolsin,
+            "lat": latitud,
+            "lng": longitud,
+            "lastUpdate": datetime.now().isoformat(),
+        }])
