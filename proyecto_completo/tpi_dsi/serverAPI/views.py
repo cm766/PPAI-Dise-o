@@ -66,11 +66,15 @@ def nuevaBusquedaBolsin(request):
 
     lista = []
     for bolsin_dict in BolsinSerializer(gestor.bolsines_enviados, many=True).data:
-        gps = gestor.ubicaciones.get(bolsin_dict['numeroBolsin'])
-        if gps:
-            bolsin_dict['latitud'] = gps['latitud']
-            bolsin_dict['longitud'] = gps['longitud']
-            bolsin_dict['ultimaActualizacion'] = gps['ultima_actualizacion']
+        ubicacion = gestor.ubicaciones.get(bolsin_dict['numeroBolsin'])
+        if ubicacion is not None:
+            bolsin_dict['latitud'] = ubicacion.latitud
+            bolsin_dict['longitud'] = ubicacion.longitud
+            bolsin_dict['ultimaActualizacion'] = ubicacion.ultima_actualizacion.isoformat()
+            bolsin_dict['ubicacionDisponible'] = True
+        else:
+            # A3: el GPS Tracker no pudo informar la ubicación
+            bolsin_dict['ubicacionDisponible'] = False
         lista.append(dict(bolsin_dict))
 
     return Response({
@@ -91,15 +95,19 @@ def buscarEmailGCM(request):
             return Response({'status': 'error', 'message': 'Falta número'}, status=400)
 
         gestor = GestorBuscarBolsin(request.user)
-        resultado = gestor.notificarUbicacionDelBolsin(
-            numero,
+        if gestor.tomarSeleccionBolsin(numero) is None:
+            return Response({'status': 'error', 'message': 'No encontrado'}, status=404)
+
+        resultado = gestor.tomarConfEnvioCorreo(
+            data.get('confirmacion', True),
             data.get('lat', 0.0),
             data.get('lng', 0.0),
             data.get('fecha', 'N/A'),
         )
 
         if resultado is None:
-            return Response({'status': 'error', 'message': 'No encontrado'}, status=404)
+            # A5: el EB no confirmó el envío del correo
+            return Response({'status': 'cancelado', 'message': 'No se envió el correo'}, status=200)
 
         return Response(resultado, status=status.HTTP_200_OK)
 

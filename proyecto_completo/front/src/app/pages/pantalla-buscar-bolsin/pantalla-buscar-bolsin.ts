@@ -45,6 +45,8 @@ export class PantallaBuscarBolsin implements OnInit {
 	filtrados: Bolsin[] = [];
 	destinos: string[] = [];
 	ubicaciones: Map<number, GpsLocation> = new Map();
+	sinUbicacion: Bolsin[] = []; // A3: bolsines cuyo GPS Tracker no informó ubicación
+	cantidadLocalizados = 0;
 	cmOrigen: string = '';
 	filtroPrecinto = '';
 	filtrodestino = '';
@@ -102,26 +104,28 @@ export class PantallaBuscarBolsin implements OnInit {
 	}
 
 	// Prepara las ubicaciones de cada bolsín y pasa a mostrar el mapa.
+	// A3: los bolsines sin ubicación no se ubican en el mapa, se informan aparte.
 	procesarCoordenadas(): void {
 		this.paso.set('localizando');
 
 		this.ubicaciones.clear();
+		this.sinUbicacion = [];
 
 		this.bolsines.forEach((b) => {
-			if (b.latitud !== undefined && b.longitud !== undefined) {
+			const tieneUbicacion =
+				b.ubicacionDisponible !== false &&
+				b.latitud !== undefined && b.latitud !== null &&
+				b.longitud !== undefined && b.longitud !== null;
+
+			if (tieneUbicacion) {
 				this.ubicaciones.set(b.numeroBolsin, {
 					numeroBolsin: b.numeroBolsin,
-					latitud: b.latitud,
-					longitud: b.longitud,
+					latitud: b.latitud!,
+					longitud: b.longitud!,
 					fechaHoraUltimoReporte: b.ultimaActualizacion ? new Date(b.ultimaActualizacion) : new Date(),
 				});
 			} else {
-				this.ubicaciones.set(b.numeroBolsin, {
-					numeroBolsin: b.numeroBolsin,
-					latitud: -34.6037,
-					longitud: -58.3816,
-					fechaHoraUltimoReporte: new Date(),
-				});
+				this.sinUbicacion.push(b);
 			}
 		});
 
@@ -143,6 +147,9 @@ export class PantallaBuscarBolsin implements OnInit {
 					.includes(this.filtrodestino.toLowerCase());
 			return matchP && matchD;
 		});
+		this.cantidadLocalizados = this.filtrados.filter((b) =>
+			this.ubicaciones.has(b.numeroBolsin),
+		).length;
 
 		setTimeout(() => {
 			const el = document.getElementById('mapa-bolsines');
@@ -229,8 +236,7 @@ export class PantallaBuscarBolsin implements OnInit {
 	procesarSeleccion(): void {
 		if (
 			this.bolsinSeleccionado &&
-			(this.bolsinSeleccionado.latitud === undefined ||
-				this.bolsinSeleccionado.longitud === undefined)
+			!this.ubicaciones.has(this.bolsinSeleccionado.numeroBolsin)
 		) {
 			this.paso.set('a3Error');
 		} else {

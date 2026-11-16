@@ -42,6 +42,9 @@ class ComisionMedica(models.Model):
 
     def getNombre(self):
         return self.nombre  # Retorna el nombre de la comisión médica
+
+    def getCodigo(self):
+        return str(self.codigo)  # Retorna el código de la comisión médica (los GPS Tracker lo piden como String)
     
 class Rol(models.Model):
     nombre = models.CharField(max_length=100)
@@ -146,6 +149,13 @@ class Bolsin(models.Model):
     origen = models.ForeignKey('ComisionMedica', on_delete=models.CASCADE, related_name='bolsines_origen') 
     destino = models.ForeignKey('ComisionMedica', on_delete=models.CASCADE, related_name='bolsines_destino') 
     cambioEstado = models.ForeignKey(CambioEstadoBolsin, on_delete=models.CASCADE, related_name='bolsines_estado')
+    # Modelo del GPS Tracker del bolsín (RNF 6). En el análisis era el atributo "modelo" de «interfaz» GPSTracker.
+    MODELOS_TRACKER = [
+        ('XTR4500L', 'XTR-4500L'),
+        ('NavTrackQX7A', 'NavTrack QX-7A'),
+        ('GeoPulseMTR900', 'GeoPulse MTR-900'),
+    ]
+    modeloTracker = models.CharField(max_length=30, choices=MODELOS_TRACKER, default='XTR4500L')
 
     class Meta:
         db_table = 'Bolsin'
@@ -160,6 +170,12 @@ class Bolsin(models.Model):
 
     def getNumeroBolsin(self):
         return self.numeroBolsin  # Retorna el número del bolsín
+
+    def getModeloTracker(self):
+        return self.modeloTracker  # Retorna el modelo de GPS Tracker del bolsín
+
+    def getCMOrigen(self):
+        return self.origen  # Retorna la cm de origen
     
     def modificarBolsin(self, peso):  # En caso de que mas cosas se tengan que mopdificar, se agregan como parametros y se modifican en el metodo
         if self.numeroPrecinto is None :  # Con la condicion de que el numero de precinto sea None, significa que el bolsín no ha sido cerrado y se puede modificar

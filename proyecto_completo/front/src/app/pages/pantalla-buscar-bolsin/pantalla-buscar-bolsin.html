@@ -27,7 +27,7 @@
 			</div>
 			<div style="font-size: 0.85rem; font-weight: 500">
 				<i class="bi bi-check-circle-fill text-success me-1"></i>
-				{{ filtrados.length }} bolsines localizados
+				{{ cantidadLocalizados }} bolsines localizados
 			</div>
 		</div>
 
@@ -72,6 +72,24 @@
 		<div class="alert alert-warning py-2 mt-2 mb-0" style="font-size: 0.875rem">
 			<i class="bi bi-exclamation-circle me-1"></i>
 			No se encontró ningún bolsín con los filtros especificados.
+		</div>
+		}
+
+		<!-- A3: El GPS Tracker no pudo informar la ubicación de algunos bolsines -->
+		@if (sinUbicacion.length > 0) {
+		<div class="alert alert-danger py-2 mt-2 mb-0" style="font-size: 0.875rem">
+			<i class="bi bi-exclamation-triangle-fill me-1"></i>
+			El GPS Tracker no pudo informar la ubicación de
+			{{ sinUbicacion.length === 1 ? 'un bolsín' : sinUbicacion.length + ' bolsines' }}:
+			@for (b of sinUbicacion; track b.numeroBolsin) {
+			<button
+				type="button"
+				class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+				(click)="tomarSeleccionBolsin(b.numeroBolsin)"
+			>
+				#{{ b.numeroBolsin }} ({{ b.destino }})
+			</button>
+			}
 		</div>
 		}
 	</div>

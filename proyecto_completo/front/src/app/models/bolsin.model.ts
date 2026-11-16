@@ -7,4 +7,5 @@ export interface Bolsin {
   latitud?: number;           
   longitud?: number;          
   ultimaActualizacion?: string; 
+  ubicacionDisponible?: boolean; // A3: false si el GPS Tracker no pudo informar la ubicación
 }
