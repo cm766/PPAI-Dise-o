@@ -17,3 +17,8 @@ class GeoPulseMTR900Tracker:
 
         latitud, longitud = posicion
         return [[str(nroBolsin), str(latitud), str(longitud), datetime.now().isoformat()]]
+
+
+# Servicio externo del fabricante: ya existe, el sistema no lo crea.
+# Los adaptadores solo guardan una referencia (puntero) a este objeto para hacerle peticiones.
+servicio_geopulse_mtr900 = GeoPulseMTR900Tracker()

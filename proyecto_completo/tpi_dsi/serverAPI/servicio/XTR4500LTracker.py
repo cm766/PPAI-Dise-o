@@ -25,3 +25,8 @@ class XTR4500LTracker:
             "lng": longitud,
             "lastUpdate": datetime.now().isoformat(),
         }])
+
+
+# Servicio externo del fabricante: ya existe, el sistema no lo crea.
+# Los adaptadores solo guardan una referencia (puntero) a este objeto para hacerle peticiones.
+servicio_xtr4500l = XTR4500LTracker()

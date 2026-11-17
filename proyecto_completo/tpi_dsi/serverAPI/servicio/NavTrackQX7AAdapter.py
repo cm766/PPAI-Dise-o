@@ -3,22 +3,23 @@ from ..interfaz.GPSTracker import (
     UbicacionBolsin,
     UbicacionNoDisponibleError,
 )
-from .NavTrackQX7ATracker import NavTrackQX7ATracker
+from .NavTrackQX7ATracker import NavTrackQX7ATracker, servicio_navtrack_qx7a
 from .tracker_adapter_utils import crear_ubicacion
 
 
 # PATRÓN ADAPTER: Adapter que traduce el formato NavTrack QX-7A (String separado por comas)
 # al Target común.
 class NavTrackQX7AAdapter(ServicioBolsinesTracker):
-    def __init__(self, adaptee: NavTrackQX7ATracker, api_key: str):
-        self.adaptee = adaptee
+    def __init__(self, api_key: str):
         self.api_key = api_key
+        # Puntero al servicio externo del fabricante (no se crea, ya existe)
+        self.servicio: NavTrackQX7ATracker = servicio_navtrack_qx7a
 
     def obtener_ubicacion(self, bolsin) -> UbicacionBolsin:
         numero_bolsin = bolsin.getNumeroBolsin()
         try:
             codigo_cm_destino = bolsin.getCMDestino().getCodigo()
-            datos = self.adaptee.retrieveTrackingData(
+            datos = self.servicio.retrieveTrackingData(
                 self.api_key, numero_bolsin, codigo_cm_destino
             )
             if not datos:

@@ -1,12 +1,20 @@
 from ..models import Bolsin, Empleado, Sesion
-from ..interfaz.GPSTracker import UbicacionNoDisponibleError
-from ..servicio.tracker_factory import crear_servicio_bolsines_tracker
+from ..interfaz.GPSTracker import ServicioBolsinesTracker, UbicacionNoDisponibleError
+from ..servicio.XTR4500LAdapter import XTR4500LAdapter
+from ..servicio.NavTrackQX7AAdapter import NavTrackQX7AAdapter
+from ..servicio.GeoPulseMTR900Adapter import GeoPulseMTR900Adapter
 from ..servicio.googleMap import GoogleMap
+
+# API Keys identificatorias de cada servicio de GPS Tracker (simuladas)
+API_KEY_XTR4500L = "KEY_XTR_123"
+API_KEY_NAVTRACK = "KEY_NAVTRACK_456"
+API_KEY_GEOPULSE = "KEY_GEOPULSE_789"
 
 
 # PATRÓN ADAPTER: GestorBuscarBolsin cumple el rol de Cliente.
-# Pide la ubicación de cada bolsín a través de la interfaz común (Target),
-# sin conocer qué modelo de GPS Tracker hay detrás.
+# Crea el Adapter que corresponde al modelo de GPS Tracker de cada bolsín (crearAdaptador)
+# y después pide la ubicación siempre a través de la interfaz común (Target),
+# sin saber qué adaptador concreto le tocó.
 class GestorBuscarBolsin:
 
     def __init__(self, usuario_autenticado):
@@ -43,8 +51,8 @@ class GestorBuscarBolsin:
         for bolsin in self.bolsines_enviados:
             numero = bolsin.getNumeroBolsin()
             try:
-                # La fábrica devuelve el Adapter que corresponde al modelo de GPS del bolsín
-                servicio_tracker = crear_servicio_bolsines_tracker(bolsin.getModeloTracker())
+                modelo_tracker = bolsin.getModeloTracker()
+                servicio_tracker = self.crearAdaptador(modelo_tracker)
                 # Llamada polimórfica: el gestor siempre usa la misma operación del Target
                 self.ubicaciones[numero] = servicio_tracker.obtener_ubicacion(bolsin)
             except UbicacionNoDisponibleError:
@@ -54,6 +62,17 @@ class GestorBuscarBolsin:
                 # Modelo de GPS Tracker sin Adapter implementado
                 print(f"Error al obtener GPS: {error}")
                 self.bolsines_sin_ubicacion.append(numero)
+
+    def crearAdaptador(self, modelo_tracker: str) -> ServicioBolsinesTracker:
+        # Según el modelo de GPS Tracker del bolsín, se crea el Adapter concreto.
+        # El resto del gestor lo usa como ServicioBolsinesTracker.
+        if modelo_tracker == "XTR4500L":
+            return XTR4500LAdapter(API_KEY_XTR4500L)
+        if modelo_tracker == "NavTrackQX7A":
+            return NavTrackQX7AAdapter(API_KEY_NAVTRACK)
+        if modelo_tracker == "GeoPulseMTR900":
+            return GeoPulseMTR900Adapter(API_KEY_GEOPULSE)
+        raise ValueError(f"Modelo de GPS Tracker no soportado: {modelo_tracker}")
 
     def tomarSeleccionBolsin(self, numero_bolsin):
         self.bolsin_seleccionado = Bolsin.objects.filter(numeroBolsin=numero_bolsin).first()

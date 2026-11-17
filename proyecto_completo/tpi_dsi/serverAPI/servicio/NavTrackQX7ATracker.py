@@ -16,3 +16,8 @@ class NavTrackQX7ATracker:
 
         latitud, longitud = posicion
         return f"{nroBolsin},{latitud},{longitud},{datetime.now().isoformat()}"
+
+
+# Servicio externo del fabricante: ya existe, el sistema no lo crea.
+# Los adaptadores solo guardan una referencia (puntero) a este objeto para hacerle peticiones.
+servicio_navtrack_qx7a = NavTrackQX7ATracker()

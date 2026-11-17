@@ -5,21 +5,22 @@ from ..interfaz.GPSTracker import (
     UbicacionBolsin,
     UbicacionNoDisponibleError,
 )
-from .XTR4500LTracker import XTR4500LTracker
+from .XTR4500LTracker import XTR4500LTracker, servicio_xtr4500l
 from .tracker_adapter_utils import crear_ubicacion
 
 
 # PATRÓN ADAPTER: Adapter que traduce el formato XTR-4500L (JSON en String) al Target común.
 class XTR4500LAdapter(ServicioBolsinesTracker):
-    def __init__(self, adaptee: XTR4500LTracker, api_key: str):
-        self.adaptee = adaptee
+    def __init__(self, api_key: str):
         self.api_key = api_key
+        # Puntero al servicio externo del fabricante (no se crea, ya existe)
+        self.servicio: XTR4500LTracker = servicio_xtr4500l
 
     def obtener_ubicacion(self, bolsin) -> UbicacionBolsin:
         numero_bolsin = bolsin.getNumeroBolsin()
         try:
             codigo_cm_origen = bolsin.getCMOrigen().getCodigo()
-            respuesta = self.adaptee.getBolsinLocation(
+            respuesta = self.servicio.getBolsinLocation(
                 self.api_key, numero_bolsin, codigo_cm_origen
             )
             item = json.loads(respuesta)[0]
